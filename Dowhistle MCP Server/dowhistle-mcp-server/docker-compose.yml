@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+    mcp-server:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: production
+        container_name: dowhistle-mcp-server
+        ports:
+            - '8000:8000'
+        environment:
+            - ENVIRONMENT=production
+            - PORT=8000
+            - EXPRESS_API_BASE_URL=${EXPRESS_API_BASE_URL:-https://dowhistle.herokuapp.com/v3}
+            - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+            - LOG_LEVEL=INFO
+            - RATE_LIMIT_PER_MINUTE=120
+            - MAX_RETRIES=5
+            - RETRY_DELAY=2.0
+            - CONNECTION_TIMEOUT=30
+            - REQUEST_TIMEOUT=30
+        restart: unless-stopped
+        volumes:
+            - ./logs:/app/logs
+            - ./data:/app/data
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'http://localhost:8000/health']
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 40s
